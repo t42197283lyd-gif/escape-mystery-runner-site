@@ -1,0 +1,306 @@
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    overflow: hidden; background: #000; 
+    font-family: 'Courier New', monospace;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+#game-container { width: 100vw; height: 100vh; position: relative; }
+canvas { display: block; }
+
+/* UI Overlay (游戏内 HUD：REC/小地图/体力/暗角；菜单时隐藏，开始后显示) */
+#ui-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10; display: none;
+}
+
+/* REC HUD (red dot + timer) */
+#rec-hud {
+    position: absolute; top: 15px; left: 15px;
+    display: flex; align-items: center; gap: 8px;
+    color: #ff3333; font-size: 28px; font-weight: bold; letter-spacing: 1px;
+    text-shadow: 0 0 10px #ff0000;
+    background: rgba(0,0,0,0.55); padding: 8px 18px;
+    border-radius: 5px; border: none;
+    pointer-events: none;
+}
+.rec-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #ff2222; box-shadow: 0 0 12px #ff0000, 0 0 4px #ff5555;
+    animation: rec-blink 1s steps(1, end) infinite;
+}
+@keyframes rec-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.15; }
+}
+#rec-timer { font-variant-numeric: tabular-nums; font-weight: bold; }
+
+/* Mini Map */
+#minimap-container {
+    position: absolute; top: 15px; right: 15px;
+    width: 160px; height: 160px;
+    background: rgba(0,0,0,0.7); border-radius: 8px;
+    border: 2px solid #444; overflow: hidden;
+}
+#minimap { width: 100%; height: 100%; }
+
+/* Stamina bar */
+#stamina-container {
+    position: absolute; bottom: 18px; right: 18px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.45); padding: 6px 10px;
+    border-radius: 6px; pointer-events: none;
+}
+#stamina-label { color: #ccc; font-size: 12px; letter-spacing: 1px; }
+#stamina-bar {
+    width: 200px; height: 16px;
+    background: rgba(0,0,0,0.45);
+    border: 3px solid rgba(255,255,255,0.55);
+    border-radius: 4px; overflow: hidden;
+    box-shadow: 0 0 6px rgba(0,0,0,0.6);
+}
+#stamina-fill {
+    width: 100%; height: 100%;
+    background: #00e676;
+    transition: width 0.08s linear, background 0.4s ease;
+}
+
+/* Interaction prompt */
+#prompt {
+    position: absolute; bottom: 120px; left: 50%;
+    transform: translateX(-50%);
+    color: #fff; font-size: 18px;
+    background: rgba(0,0,0,0.7); padding: 10px 20px;
+    border-radius: 8px; border: 1px solid #666;
+    display: none; text-align: center;
+}
+
+/* Mobile Controls */
+#mobile-controls {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 200px;
+    pointer-events: none; display: none;
+}
+#joystick-area {
+    position: absolute; bottom: 20px; left: 20px;
+    width: 130px; height: 130px; pointer-events: auto;
+}
+#joystick-base {
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    position: relative;
+}
+#joystick-stick {
+    width: 55px; height: 55px; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    position: absolute; top: 37.5px; left: 37.5px;
+    transition: none;
+}
+
+/* Screens */
+#start-screen, #gameover-screen, #win-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.92); z-index: 100;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; color: #fff; pointer-events: auto;
+    transition: opacity 0.45s ease;
+}
+#gameover-screen, #win-screen { display: none; }
+
+/* 开始界面：左侧标题面板 + 右侧露出实时游戏画面 */
+#start-screen { background: transparent; flex-direction: row; align-items: stretch; justify-content: flex-start; }
+.menu-left {
+    width: 42%; height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 0 40px;
+    background: linear-gradient(to right, rgba(0,0,0,0.92), rgba(0,0,0,0.15));
+}
+#cover-ghost {
+    position: absolute; right: 16%; top: 50%;
+    transform: translateY(-50%);
+    height: 78vh; max-height: 680px; width: auto;
+    filter: drop-shadow(0 0 30px rgba(190,0,0,0.85)) brightness(0.9);
+    pointer-events: none;
+}
+
+/* Black fade transition overlay (用于“再来一次”黑屏转场) */
+#fade-black {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 300; opacity: 0;
+    display: none; pointer-events: none;
+}
+
+/* 死亡花屏层：被鬼抓住后全屏显示，覆盖一切 UI */
+#death-static {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 310; opacity: 0; display: none; pointer-events: none;
+    background: #000;
+    transition: opacity 0.15s ease;
+}
+#death-static-img {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+.screen-title {
+    font-size: 52px; margin-bottom: 10px;
+    text-shadow: 0 0 30px #ff0000, 0 0 60px #ff0000;
+    letter-spacing: 8px;
+}
+.screen-subtitle { font-size: 18px; color: #888; margin-bottom: 40px; }
+#survive-time, #escape-time { font-size: 32px; color: #ddd; letter-spacing: 2px; margin-bottom: 30px; }
+.start-btn {
+    padding: 16px 50px; font-size: 22px; cursor: pointer;
+    background: linear-gradient(135deg, #8b0000, #ff0000);
+    border: none; color: #fff; border-radius: 8px;
+    font-family: inherit; transition: transform 0.2s;
+}
+.start-btn:hover { transform: scale(1.05); }
+.controls-info {
+    margin-top: 40px; color: #666; font-size: 14px;
+    line-height: 2; text-align: center;
+}
+
+/* Danger vignette */
+#danger-vignette {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(139,0,0,0) 100%);
+    transition: background 0.3s;
+}
+
+/* 鬼图逼近警告：屏幕下方红字颤抖，靠近淡入、远离淡出 */
+#ghost-warning {
+    position: absolute;
+    bottom: 12%; left: 50%;
+    transform: translateX(-50%);
+    color: #ff2b2b;
+    font-size: 30px; font-weight: bold;
+    letter-spacing: 6px;
+    text-shadow: 0 0 18px rgba(255,0,0,0.9), 0 0 34px rgba(255,0,0,0.7);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 120;
+    transition: opacity 0.5s ease;
+    animation: ghostWarnShake 0.16s infinite;
+}
+@keyframes ghostWarnShake {
+    0%   { transform: translateX(-50%) translateX(-2px) rotate(-1.2deg); }
+    50%  { transform: translateX(-50%) translateX(2px)  rotate(1.2deg); }
+    100% { transform: translateX(-50%) translateX(-1px) rotate(-0.6deg); }
+}
+
+/* Flashlight flicker overlay */
+#flashlight-flicker {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; background: transparent;
+}
+
+@media (max-width: 768px) {
+    #mobile-controls { display: block; }
+    #rec-hud { font-size: 16px; padding: 5px 12px; }
+    #minimap-container { width: 120px; height: 120px; }
+    #settings-btn { top: 148px; }
+    #mute-btn { top: 200px; }
+    .screen-title { font-size: 34px; letter-spacing: 4px; }
+    #stamina-container {
+        bottom: 14px; right: 14px;
+    }
+    #stamina-bar { width: 140px; }
+
+    /* 手机端封面：改为纵向居中，避免鬼图与标题文字重叠 */
+    #start-screen { flex-direction: column; align-items: center; justify-content: center; }
+    .menu-left {
+        width: 100%; height: 100%;
+        padding: 0 22px;
+        background: rgba(0,0,0,0.6);
+        position: relative; z-index: 1;
+    }
+    #cover-ghost {
+        right: 50%; top: 52%;
+        transform: translate(50%, -50%);
+        height: 46vh; max-height: 360px;
+        opacity: 0.5; z-index: 0;
+    }
+    .controls-info { font-size: 12px; margin-top: 22px; line-height: 1.8; }
+}
+
+/* Settings Button */
+#settings-btn {
+    position: absolute; top: 188px; right: 15px;
+    width: 44px; height: 44px; border-radius: 0;
+    background: rgba(0,0,0,0.6); border: 2px solid #666;
+    color: #fff; font-size: 22px; cursor: pointer;
+    z-index: 150; pointer-events: auto;
+    display: none; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+}
+@media (hover: hover) {
+    #settings-btn:hover { background: rgba(60,0,0,0.8); transform: scale(1.1); }
+}
+
+/* Mute Footstep Button */
+#mute-btn {
+    position: absolute; top: 240px; right: 15px;
+    width: 44px; height: 44px; border-radius: 0;
+    background: rgba(0,0,0,0.6); border: 2px solid #666;
+    color: #fff; font-size: 20px; cursor: pointer;
+    z-index: 150; pointer-events: auto;
+    display: none; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+}
+@media (hover: hover) {
+    #mute-btn:hover { background: rgba(60,0,0,0.8); transform: scale(1.1); }
+}
+
+/* Settings Panel */
+#settings-panel {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 320px; max-width: 90vw;
+    background: rgba(15,10,10,0.95); border: 2px solid #8b0000;
+    border-radius: 12px; padding: 24px; z-index: 200;
+    box-shadow: 0 0 40px rgba(139,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+#settings-panel.open {
+    opacity: 1; pointer-events: auto;
+}
+.settings-title {
+    color: #ff3333; font-size: 26px; font-weight: bold;
+    text-align: center; margin-bottom: 24px;
+    text-shadow: 0 0 10px #ff0000; letter-spacing: 4px;
+}
+.setting-row { margin-bottom: 22px; }
+.setting-row label {
+    display: block; color: #ccc; font-size: 15px; margin-bottom: 10px;
+}
+.setting-row label span { color: #ff6666; float: right; font-weight: bold; }
+.setting-row input[type="range"] {
+    width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+    background: #444; border-radius: 3px; outline: none; cursor: pointer;
+}
+.setting-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #ff3333; border: 2px solid #fff; cursor: pointer;
+}
+.setting-row input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #ff3333; border: 2px solid #fff; cursor: pointer;
+}
+.settings-buttons { margin-top: 10px; text-align: center; }
+.settings-btn {
+    padding: 10px 36px; font-size: 17px; cursor: pointer;
+    background: linear-gradient(135deg, #8b0000, #ff0000);
+    border: none; color: #fff; border-radius: 8px; font-family: inherit;
+}
+.settings-btn:hover { filter: brightness(1.2); }
+
+#start-screen .screen-title{text-align:center;line-height:1.35;font-size:clamp(28px,4.2vw,52px)}.title-word{display:inline-block;white-space:nowrap}
+
+#pause-screen{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,.75);display:grid;place-items:center;color:#eee;text-align:center;backdrop-filter:blur(5px)}
+#pause-screen[hidden]{display:none}.pause-card h2{font-size:32px;font-weight:400;letter-spacing:6px}.pause-card p{color:#aaa;margin:24px 20px;font-size:13px}button:focus-visible{outline:2px solid white;outline-offset:4px}
+#cover-ghost{background-image:url("assets/runner-exact-face.png");background-repeat:no-repeat;aspect-ratio:202/508;filter:drop-shadow(0 0 25px rgba(190,0,0,.75)) brightness(.9)}

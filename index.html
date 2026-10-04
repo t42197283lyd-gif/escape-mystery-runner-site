@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>逃离神秘跑男</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="items.css">
+</head>
+<body>
+
+<div id="game-container">
+    <div id="ui-overlay">
+        <div id="rec-hud"><span class="rec-dot"></span>REC <span id="rec-timer">00:00</span></div>
+        <div id="minimap-container"><canvas id="minimap"></canvas></div>
+        <div id="stamina-container">
+            <div id="stamina-label">体力</div>
+            <div id="stamina-bar"><div id="stamina-fill"></div></div>
+        </div>
+        <div id="danger-vignette"></div>
+        <div id="flashlight-flicker"></div>
+        <div id="ghost-warning">他在找你</div>
+        
+        <div id="level-label">LEVEL 0 / 后室</div><div id="inventory" role="group" aria-label="道具栏"><button type="button" class="item-slot empty" id="item-slot-0" style="--item-color:#8fe1ac"><span class="item-key">1</span><span class="item-icon" aria-hidden="true">+</span><span class="item-name">体力饮料</span><span class="item-brief">恢复 60 体力</span><span class="item-count" id="item-count-0">0</span></button><button type="button" class="item-slot empty" id="item-slot-1" style="--item-color:#8ed9ef"><span class="item-key">2</span><span class="item-icon" aria-hidden="true">↗</span><span class="item-name">瞬移装置</span><span class="item-brief">随机安全瞬移</span><span class="item-count" id="item-count-1">0</span></button><button type="button" class="item-slot empty" id="item-slot-2" style="--item-color:#f3c788"><span class="item-key">3</span><span class="item-icon" aria-hidden="true">◉</span><span class="item-name">击退脉冲</span><span class="item-brief">停顿敌人 5 秒</span><span class="item-count" id="item-count-2">0</span></button></div><div id="inventory-hint">靠近自动拾取 · 按 1 / 2 / 3 或点击使用 · 每种最多 5 个</div><div id="item-toast" role="status" aria-live="polite"></div><div id="item-flash"></div>
+<div id="mobile-controls">
+            <div id="joystick-area">
+                <div id="joystick-base"><div id="joystick-stick"></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="start-screen">
+        <div class="menu-left">
+            <div class="screen-title"><span class="title-word">逃离</span><span class="title-word">神秘跑男</span></div>
+            <button class="start-btn" onclick="beginGame()">开始游戏</button>
+            <div class="controls-info">
+                PC: WASD 移动 | 鼠标 视角 | Shift 冲刺 | 手电筒自动开启<br>
+                手机: 左侧摇杆移动 | 拖动转向 | 点击道具使用<br>道具: 靠近自动拾取 · 按 1 / 2 / 3 使用
+            </div>
+        </div>
+        <div id="cover-ghost" role="img" aria-label="奔跑中的追逐人物"></div>
+    </div>
+    
+    <div id="gameover-screen">
+        <div class="screen-title" style="color:#ff0000;">你被抓住了</div>
+        <div class="screen-subtitle" id="survive-time">存活时间: 00:00</div>
+        <button class="start-btn" onclick="restartGame()">再来一次</button>
+    </div>
+    
+    <div id="win-screen">
+        <div class="screen-title" style="color:#00ff00;">成功逃脱!</div>
+        <div class="screen-subtitle" id="escape-time">用时: 00:00</div>
+        <button class="start-btn" onclick="restartGame()">再玩一次</button>
+    </div>
+    
+    <!-- 黑屏转场遮罩（仅用于“再来一次 / 再玩一次”） -->
+    <div id="fade-black"></div>
+    
+    <!-- 死亡花屏层（被鬼抓住时显示） -->
+    <div id="death-static">
+        <img src="assets/death.png" alt="" id="death-static-img">
+    </div>
+    
+    <!-- Settings Button -->
+    <button id="settings-btn" title="设置">⚙</button>
+
+    <!-- Mute Footstep Button -->
+    <button id="mute-btn" title="静音走路声">🔊</button>
+    
+    <!-- Settings Panel -->
+    <div id="settings-panel">
+        <div class="settings-title">设置</div>
+        
+        <div class="setting-row">
+            <label>亮度 <span id="brightness-val">100%</span></label>
+            <input type="range" id="brightness-slider" min="20" max="200" value="100">
+        </div>
+        
+        <div class="setting-row">
+            <label>鼠标灵敏度 <span id="sens-val">100%</span></label>
+            <input type="range" id="sens-slider" min="20" max="200" value="100">
+        </div>
+        
+        <div class="settings-buttons">
+            <button id="settings-close" class="settings-btn">完成</button>
+        </div>
+    </div>
+</div>
+
+<script src="assets/three.min.js"></script>
+<script src="runner.js"></script>
+<script src="backrooms.js"></script>
+<script src="items.js"></script>
+<script src="game.js"></script>
+<script defer src="local.js"></script>
+<div id="pause-screen" hidden><div class="pause-card"><h2>游戏已暂停</h2><p>点击继续 · 鼠标转向 / 按住画面拖动</p><button id="resume-btn" class="start-btn">继续游戏</button></div></div>
+</body>
+</html>
