@@ -6,6 +6,7 @@
 <title>逃离神秘跑男</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="items.css">
+<link rel="stylesheet" href="players.css">
 </head>
 <body>
 
@@ -32,7 +33,8 @@
     <div id="start-screen">
         <div class="menu-left">
             <div class="screen-title"><span class="title-word">逃离</span><span class="title-word">神秘跑男</span></div>
-            <button class="start-btn" onclick="beginGame()">开始游戏</button>
+            <label class="player-entry" for="player-name">姓名 / 昵称 <span>选填</span><input id="player-name" maxlength="20" autocomplete="nickname" placeholder="不填则以游客身份游玩"><small>登记的昵称和成绩将显示在公开排行榜</small></label>
+<button class="start-btn" onclick="beginGame()">开始游戏</button>
             <div class="controls-info">
                 PC: WASD 移动 | 鼠标 视角 | Shift 冲刺 | 手电筒自动开启<br>
                 手机: 左侧摇杆移动 | 拖动转向 | 点击道具使用<br>道具: 靠近自动拾取 · 按 1 / 2 / 3 使用
@@ -44,13 +46,13 @@
     <div id="gameover-screen">
         <div class="screen-title" style="color:#ff0000;">你被抓住了</div>
         <div class="screen-subtitle" id="survive-time">存活时间: 00:00</div>
-        <button class="start-btn" onclick="restartGame()">再来一次</button>
+        <section class="ranking-panel" id="death-ranking" aria-label="玩家排行榜"><div class="ranking-heading"><h2>玩家排行榜</h2><span>全体玩家共享</span></div><div class="ranking-tabs" role="group" aria-label="排行分类"><button type="button" data-board="survival" aria-pressed="true">生存榜 · 越久越好</button><button type="button" data-board="escape" aria-pressed="false">逃脱榜 · 越快越好</button></div><p class="ranking-status" role="status" aria-live="polite"></p><div class="ranking-list"></div><button type="button" class="ranking-retry" hidden>重试同步</button></section><button class="start-btn" onclick="restartGame()">再来一次</button>
     </div>
     
     <div id="win-screen">
         <div class="screen-title" style="color:#00ff00;">成功逃脱!</div>
         <div class="screen-subtitle" id="escape-time">用时: 00:00</div>
-        <button class="start-btn" onclick="restartGame()">再玩一次</button>
+        <section class="ranking-panel" id="escape-ranking" aria-label="玩家排行榜"><div class="ranking-heading"><h2>玩家排行榜</h2><span>全体玩家共享</span></div><div class="ranking-tabs" role="group" aria-label="排行分类"><button type="button" data-board="survival" aria-pressed="true">生存榜 · 越久越好</button><button type="button" data-board="escape" aria-pressed="false">逃脱榜 · 越快越好</button></div><p class="ranking-status" role="status" aria-live="polite"></p><div class="ranking-list"></div><button type="button" class="ranking-retry" hidden>重试同步</button></section><button class="start-btn" onclick="restartGame()">再玩一次</button>
     </div>
     
     <!-- 黑屏转场遮罩（仅用于“再来一次 / 再玩一次”） -->
@@ -92,7 +94,11 @@
 <script src="backrooms.js"></script>
 <script src="items.js"></script>
 <script src="game.js"></script>
+<script src="leaderboard-config.js"></script>
+<script src="leaderboard.js"></script>
 <script defer src="local.js"></script>
+<script defer src="mobile.js"></script>
+<button type="button" id="landscape-btn" hidden aria-label="手机全屏横屏">⛶ 横屏</button><div id="rotate-hint" hidden role="status"><span aria-hidden="true">↻</span><strong>横过手机，视野更宽</strong><p id="rotate-message">点击尝试全屏横屏，或关闭手机方向锁后横置设备</p><button type="button" id="rotate-action">全屏横屏</button><button type="button" id="rotate-dismiss">继续竖屏</button></div>
 <div id="pause-screen" hidden><div class="pause-card"><h2>游戏已暂停</h2><p>点击继续 · 鼠标转向 / 按住画面拖动</p><button id="resume-btn" class="start-btn">继续游戏</button></div></div>
 </body>
 </html>

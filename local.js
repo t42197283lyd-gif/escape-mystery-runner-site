@@ -26,6 +26,7 @@ document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && !settingsOpen) pauseGame();
 });
 document.addEventListener('keydown', e => {
+    if (e.target.closest?.('input,textarea')) return;
     if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
     if (e.code === 'Escape' && !settingsOpen) {
         if (gamePaused) resumeGame();

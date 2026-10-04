@@ -704,6 +704,7 @@ function drawMinimap() {
 function setupInputs() {
     // Keyboard
     document.addEventListener('keydown', e => {
+        if (e.target.closest?.('input,textarea')) return;
         keys[e.code] = true;
     });
     document.addEventListener('keyup', e => {
@@ -768,13 +769,13 @@ function setupInputs() {
             t.closest('#joystick-area') ||
             t.closest('#settings-btn') ||
             t.closest('#settings-panel') ||
-            t.closest('#mute-btn') || t.closest('#inventory')
+            t.closest('#mute-btn') || t.closest('#inventory') || t.closest('button,input')
         );
     }
 
     const root = document.getElementById('game-container');
     root.addEventListener('touchstart', e => {
-        if (!gameStarted || gameEnded) return;  // 菜单/结算界面不拦截，保证按钮可点
+        if (!gameStarted || gameEnded || gamePaused) return;  // 菜单/结算界面不拦截，保证按钮可点
         for (const t of e.changedTouches) {
             if (t.target.closest('#joystick-area')) {
                 joystickActive = true;
@@ -792,7 +793,7 @@ function setupInputs() {
     }, { passive: false });
 
     root.addEventListener('touchmove', e => {
-        if (!gameStarted || gameEnded) return;
+        if (!gameStarted || gameEnded || gamePaused) return;
         for (const t of e.changedTouches) {
             const r = touchRoles[t.identifier];
             if (!r) continue;
@@ -1490,6 +1491,7 @@ function blackTransition(midCallback) {
 }
 
 function startGame() {
+    PlayerRankings.start();
     // 显示游戏内 HUD 与右上角按钮（菜单/结算界面时隐藏）
     document.getElementById('ui-overlay').style.display = 'block';
     document.getElementById('settings-btn').style.display = 'flex';
@@ -1595,7 +1597,10 @@ function animateTimeCounter(el, finalSeconds, durationMs, prefix) {
 }
 
 function gameOver(won) {
+    if(gameEnded) return;
     gameEnded = true;
+    elapsedTime = Math.max(0,Date.now() - startTime);
+    PlayerRankings.finish(won,elapsedTime);
     // 结算界面隐藏右上角按钮（仅游戏内进行时显示）
     document.getElementById('settings-btn').style.display = 'none';
     document.getElementById('mute-btn').style.display = 'none';
